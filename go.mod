@@ -1,0 +1,1 @@
+module go_echo_base
