@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/phsaurav/go_echo_base/config"
 	"github.com/phsaurav/go_echo_base/pkg/logger"
 	"net/http"
@@ -17,35 +17,6 @@ import (
 type app struct {
 	config config.Config
 	log    *logger.Logger
-}
-
-var configCORS = echoMiddleware.CORSConfig{
-	AllowOrigins: []string{"*"},
-	AllowMethods: []string{
-		http.MethodGet,
-		http.MethodPut,
-		http.MethodPost,
-		http.MethodDelete,
-		http.MethodPatch,
-	},
-}
-
-func (a *app) mount() *echo.Echo {
-	e := echo.New()
-	e.Use(echoMiddleware.Logger())
-	e.Use(echoMiddleware.Recover())
-	e.Use(echoMiddleware.CORSWithConfig(configCORS))
-
-	// Routes
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Welcome to the Echo API!")
-	})
-
-	e.GET("/ping", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello World 👋")
-	})
-
-	return e
 }
 
 func (a *app) run(mux *echo.Echo) error {
@@ -64,28 +35,28 @@ func (a *app) run(mux *echo.Echo) error {
 
 	// Start server
 	go func() {
-		if err := mux.StartServer(srv); err != nil && err != http.ErrServerClosed {
-			a.log.Fatal().Err(err).Msg("Failed to start server")
+		if err := mux.StartServer(srv); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			a.log.Fatal("Failed to start server")
 		}
 	}()
 
-	a.log.Info().Str("addr", a.config.Addr).Str("env", a.config.Env).Msg("Server started")
+	a.log.Infof("Server started at %s in %s environment", a.config.Addr, a.config.Env)
 
 	// Wait for interrupt signal to gracefully shutdown the server
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	a.log.Info().Msg("Server is shutting down...")
+	a.log.Info("Server is shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := mux.Shutdown(ctx); err != nil {
-		a.log.Error().Err(err).Msg("Server forced to shutdown")
+		a.log.Errorf("Server forced to shutdown: %v", err)
 		return fmt.Errorf("server forced to shutdown: %w", err)
 	}
 
-	a.log.Info().Msg("Server exited gracefully")
+	a.log.Info("Server exited gracefully")
 	return nil
 }
