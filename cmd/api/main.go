@@ -17,15 +17,21 @@ func main() {
 
 	log := logger.NewLogger()
 	log.SetLevel(cfg.LogLevel)
+	defer func(log *logger.Logger) {
+		err := log.Sync()
+		if err != nil {
 
-	mainApp := &app{
+		}
+	}(log)
+
+	a := &app{
 		config: cfg,
 		log:    log,
 	}
 
-	mux := mainApp.mount()
+	mux := a.mount()
 
-	if err := mainApp.run(mux); err != nil {
-		log.Fatal().Err(err).Msg("Application failed to run")
+	if err := a.run(mux); err != nil {
+		log.Error("Application failed to run")
 	}
 }
