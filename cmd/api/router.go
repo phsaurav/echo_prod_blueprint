@@ -18,40 +18,40 @@ var configCORS = echoMiddleware.CORSConfig{
 	},
 }
 
-func (a *app) mount() *echo.Echo {
-	e := echo.New()
-	e.Use(echoMiddleware.Logger())
-	e.Use(echoMiddleware.Recover())
-	e.Use(echoMiddleware.CORSWithConfig(configCORS))
+func (app *appStruct) mount() *echo.Echo {
+	echoApp := echo.New()
+	echoApp.Use(echoMiddleware.Logger())
+	echoApp.Use(echoMiddleware.Recover())
+	echoApp.Use(echoMiddleware.CORSWithConfig(configCORS))
 
 	// Define API versions
 	apiVersions := []string{"v1"}
 
 	// Set up routes for each API version
 	for _, version := range apiVersions {
-		root := e.Group(fmt.Sprintf("/api/%s", version))
-		a.routes(root, version)
+		root := echoApp.Group(fmt.Sprintf("/api/%s", version))
+		app.routes(root, version)
 	}
 
-	return e
+	return echoApp
 }
 
 // Mount the routes for the specified API version into the echo router
-func (a *app) routes(root *echo.Group, version string) {
+func (app *appStruct) routes(route *echo.Group, version string) {
 	switch version {
 	case "v1":
-		a.registerV1Routes(root)
+		app.registerV1Routes(route)
 	}
 
 }
 
 // Methods to register routes for specific versions
-func (a *app) registerV1Routes(r *echo.Group) {
+func (app *appStruct) registerV1Routes(route *echo.Group) {
 	// Routes
-	r.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Welcome to the Echo API!")
+	route.GET("/", func(ctx echo.Context) error {
+		return ctx.String(http.StatusOK, "Welcome to the Echo API!")
 	})
-	r.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello World 👋")
+	route.GET("/health", func(ctx echo.Context) error {
+		return ctx.String(http.StatusOK, "Hello World 👋")
 	})
 }
