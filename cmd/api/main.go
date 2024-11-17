@@ -24,14 +24,14 @@ func main() {
 		}
 	}(log)
 
-	app := &appStruct{
+	a := &app{
 		config: cfg,
 		log:    log,
 	}
 
-	mux := app.mount()
+	mux := a.mount()
 
-	if err := app.run(mux); err != nil {
+	if err := a.run(mux); err != nil {
 		log.Error("Application failed to run")
 	}
 }

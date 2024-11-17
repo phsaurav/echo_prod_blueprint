@@ -8,67 +8,67 @@ import (
 	"time"
 )
 
-type ConfigStruct struct {
+type Config struct {
 	Addr        string
 	LogLevel    string
-	db          dbConfigStruct
+	db          dbConfig
 	Env         string
 	apiURL      string
-	mail        mailConfigStruct
+	mail        mailConfig
 	frontendURL string
-	auth        authConfigStruct
-	redisCfg    redisConfigStruct
-	rateLimiter rateLimiterConfigStruct
+	auth        authConfig
+	redisCfg    redisConfig
+	rateLimiter rateLimiterConfig
 }
 
-type redisConfigStruct struct {
+type redisConfig struct {
 	addr    string
 	pw      string
 	db      int
 	enabled bool
 }
 
-type authConfigStruct struct {
-	basic basicConfigStruct
-	token tokenConfigStruct
+type authConfig struct {
+	basic basicConfig
+	token tokenConfig
 }
 
-type tokenConfigStruct struct {
+type tokenConfig struct {
 	secret string
 	exp    time.Duration
 	iss    string
 }
 
-type basicConfigStruct struct {
+type basicConfig struct {
 	user string
 	pass string
 }
 
-type mailConfigStruct struct {
-	sendGrid  sendGridConfigStruct
+type mailConfig struct {
+	sendGrid  sendGridConfig
 	fromEmail string
 	exp       time.Duration
 }
 
-type sendGridConfigStruct struct {
+type sendGridConfig struct {
 	apiKey string
 }
 
-type dbConfigStruct struct {
+type dbConfig struct {
 	addr         string
 	maxOpenConns int
 	maxIdleConns int
 	maxIdleTime  string
 }
 
-type rateLimiterConfigStruct struct {
+type rateLimiterConfig struct {
 	RequestsPerTimeFrame int
 	TimeFrame            time.Duration
 	Enabled              bool
 }
 
 // LoadConfig loads the configuration from the specified filename and environment variables.
-func LoadConfig(filename string) (ConfigStruct, error) {
+func LoadConfig(filename string) (Config, error) {
 	// Create a new Viper instance.
 	v := viper.New()
 
@@ -86,13 +86,13 @@ func LoadConfig(filename string) (ConfigStruct, error) {
 		// It's okay if the config file doesn't exist, we'll use env vars
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			fmt.Printf("Error reading config file: %v\n", err)
-			return ConfigStruct{}, err
+			return Config{}, err
 		}
 	}
 
 	// Automatically bind environment variables based on struct tags
 	if err := bindEnvVariables(v); err != nil {
-		return ConfigStruct{}, fmt.Errorf("error binding environment variables: %v", err)
+		return Config{}, fmt.Errorf("error binding environment variables: %v", err)
 	}
 	// Add more bindings for other config fields as needed
 
@@ -100,10 +100,10 @@ func LoadConfig(filename string) (ConfigStruct, error) {
 	setDefaultValues(v)
 
 	// Unmarshal the configuration into the Config struct.
-	var config ConfigStruct
+	var config Config
 	if err := v.Unmarshal(&config); err != nil {
 		fmt.Printf("Error unmarshaling config: %v\n", err)
-		return ConfigStruct{}, err
+		return Config{}, err
 	}
 
 	return config, nil
@@ -111,7 +111,7 @@ func LoadConfig(filename string) (ConfigStruct, error) {
 
 // bindEnvVariables automatically binds environment variables based on struct tags
 func bindEnvVariables(v *viper.Viper) error {
-	configType := reflect.TypeOf(ConfigStruct{})
+	configType := reflect.TypeOf(Config{})
 	for i := 0; i < configType.NumField(); i++ {
 		field := configType.Field(i)
 		envTag := field.Tag.Get("env")
