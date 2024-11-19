@@ -28,7 +28,7 @@ tmp_dir = "bin"
   stop_on_error = false
 
 [color]
-  app = ""
+  application = ""
   build = "yellow"
   main = "magenta"
   runner = "green"

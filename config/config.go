@@ -70,39 +70,39 @@ type rateLimiterConfig struct {
 // LoadConfig loads the configuration from the specified filename and environment variables.
 func LoadConfig(filename string) (Config, error) {
 	// Create a new Viper instance.
-	v := viper.New()
+	cfgReader := viper.New()
 
 	// Set the configuration file name and path.
-	v.SetConfigName(filename)
-	v.AddConfigPath("./config")
-	v.AddConfigPath(".")
+	cfgReader.SetConfigName(filename)
+	cfgReader.AddConfigPath("./config")
+	cfgReader.AddConfigPath(".")
 
 	// Enable reading from environment variables.
-	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	cfgReader.AutomaticEnv()
+	cfgReader.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// Read the configuration file.
-	if err := v.ReadInConfig(); err != nil {
+	if err := cfgReader.ReadInConfig(); err != nil {
 		// It's okay if the config file doesn't exist, we'll use env vars
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			fmt.Printf("Error reading config file: %v\n", err)
+			fmt.Printf("Error reading config file: %cfgReader\n", err)
 			return Config{}, err
 		}
 	}
 
 	// Automatically bind environment variables based on struct tags
-	if err := bindEnvVariables(v); err != nil {
-		return Config{}, fmt.Errorf("error binding environment variables: %v", err)
+	if err := bindEnvVariables(cfgReader); err != nil {
+		return Config{}, fmt.Errorf("error binding environment variables: %cfgReader", err)
 	}
 	// Add more bindings for other config fields as needed
 
 	// Set default values
-	setDefaultValues(v)
+	setDefaultValues(cfgReader)
 
 	// Unmarshal the configuration into the Config struct.
 	var config Config
-	if err := v.Unmarshal(&config); err != nil {
-		fmt.Printf("Error unmarshaling config: %v\n", err)
+	if err := cfgReader.Unmarshal(&config); err != nil {
+		fmt.Printf("Error unmarshaling config: %cfgReader\n", err)
 		return Config{}, err
 	}
 
@@ -110,13 +110,13 @@ func LoadConfig(filename string) (Config, error) {
 }
 
 // bindEnvVariables automatically binds environment variables based on struct tags
-func bindEnvVariables(v *viper.Viper) error {
+func bindEnvVariables(cfgReader *viper.Viper) error {
 	configType := reflect.TypeOf(Config{})
 	for i := 0; i < configType.NumField(); i++ {
 		field := configType.Field(i)
 		envTag := field.Tag.Get("env")
 		if envTag != "" {
-			err := v.BindEnv(field.Name, envTag)
+			err := cfgReader.BindEnv(field.Name, envTag)
 			if err != nil {
 				return fmt.Errorf("error binding %s: %v", field.Name, err)
 			}
@@ -126,8 +126,8 @@ func bindEnvVariables(v *viper.Viper) error {
 }
 
 // setDefaultValues sets default values for configuration fields
-func setDefaultValues(v *viper.Viper) {
-	v.SetDefault("Addr", ":8080")
-	v.SetDefault("LogLevel", "info")
+func setDefaultValues(cfgReader *viper.Viper) {
+	cfgReader.SetDefault("Addr", ":8080")
+	cfgReader.SetDefault("LogLevel", "info")
 	// Add more default values as needed
 }
