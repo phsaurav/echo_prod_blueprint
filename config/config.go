@@ -8,10 +8,14 @@ import (
 	"time"
 )
 
+var (
+	QueryTimeoutDuration = time.Second * 5
+)
+
 type Config struct {
 	Addr        string
 	LogLevel    string
-	db          dbConfig
+	Db          dbConfig
 	Env         string
 	apiURL      string
 	mail        mailConfig
@@ -55,10 +59,10 @@ type sendGridConfig struct {
 }
 
 type dbConfig struct {
-	addr         string
-	maxOpenConns int
-	maxIdleConns int
-	maxIdleTime  string
+	Addr         string
+	MaxOpenConns int
+	MaxIdleConns int
+	MaxIdleTime  string
 }
 
 type rateLimiterConfig struct {
