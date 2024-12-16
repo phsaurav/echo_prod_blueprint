@@ -4,17 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/phsaurav/go_echo_base/config"
-	"github.com/phsaurav/go_echo_base/pkg/logger"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	repository "github.com/phsaurav/go_echo_base/cmd"
+	"github.com/phsaurav/go_echo_base/config"
+	"github.com/phsaurav/go_echo_base/pkg/logger"
 )
 
 type application struct {
+	repo   repository.Storage
 	config config.Config
 	log    *logger.Logger
 }

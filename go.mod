@@ -4,6 +4,7 @@ go 1.23.3
 
 require (
 	github.com/labstack/echo/v4 v4.12.0
+	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.19.0
 	go.opentelemetry.io/otel/trace v1.24.0
 	go.uber.org/zap v1.21.0
@@ -11,7 +12,7 @@ require (
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	go.opentelemetry.io/otel v1.24.0 // indirect
+	go.opentelemetry.io/otel v1.24.0
 	golang.org/x/time v0.5.0 // indirect
 )
 
