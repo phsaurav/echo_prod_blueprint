@@ -5,14 +5,14 @@ tmp_dir = "bin"
 [build]
   args_bin = []
   bin = "./bin/main"
-  cmd = "go build -o ./bin/main ./cmd/api"
+  cmd = "go build -gcflags='all=-N -l' -o ./bin/main ./cmd/api"
   delay = 1000
   exclude_dir = ["assets", "bin", "vendor", "testdata", "web", "docs", "scripts"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
   follow_symlink = false
-  full_bin = ""
+  full_bin = "if [ \"$DEBUG\" = \"true\" ]; then $HOME/go/bin/dlv exec --accept-multiclient --log --headless --continue --listen :2345 --api-version 2 ./bin/main; else ./bin/main; fi"
   include_dir = []
   include_ext = ["go", "tpl", "tmpl", "html"]
   include_file = []

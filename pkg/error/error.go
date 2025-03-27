@@ -3,7 +3,7 @@
 // Usage:
 //
 //	// Create a new API error
-//	err := errs.NewAppError(http.StatusBadRequest, fmt.Errorf("invalid input"))
+//	err := errs.NewServerError(http.StatusBadRequest, fmt.Errorf("invalid input"))
 //
 //	// Use predefined error types
 //	err := errs.InvalidJSON()
@@ -27,18 +27,18 @@ import (
 	"net/http"
 )
 
-type AppError struct {
+type ServerError struct {
 	Code int
 	Err  error
 	Msg  string
 }
 
-func (h AppError) Error() string {
+func (h ServerError) Error() string {
 	return h.Err.Error()
 }
 
-func BasicErr(msg string, err ...error) AppError {
-	appErr := AppError{
+func BaseErr(msg string, err ...error) ServerError {
+	appErr := ServerError{
 		Code: http.StatusInternalServerError,
 		Msg:  msg,
 	}
@@ -53,7 +53,7 @@ func BasicErr(msg string, err ...error) AppError {
 }
 
 func BadRequest(err error) error {
-	return &AppError{
+	return &ServerError{
 		Code: http.StatusBadRequest,
 		Msg:  "bad_request",
 		Err:  err,
@@ -61,7 +61,7 @@ func BadRequest(err error) error {
 }
 
 func InternalServerError(err error) error {
-	return &AppError{
+	return &ServerError{
 		Code: http.StatusInternalServerError,
 		Msg:  "internal_server_error",
 		Err:  err,
@@ -69,7 +69,7 @@ func InternalServerError(err error) error {
 }
 
 func Unauthorized(err error) error {
-	return &AppError{
+	return &ServerError{
 		Code: http.StatusUnauthorized,
 		Msg:  "unauthorized",
 		Err:  err,
@@ -77,7 +77,7 @@ func Unauthorized(err error) error {
 }
 
 func Forbidden(err error) error {
-	return &AppError{
+	return &ServerError{
 		Code: http.StatusForbidden,
 		Msg:  "forbidden",
 		Err:  err,
@@ -85,7 +85,7 @@ func Forbidden(err error) error {
 }
 
 func NotFound(err error) error {
-	return &AppError{
+	return &ServerError{
 		Code: http.StatusNotFound,
 		Msg:  "not_found",
 		Err:  err,
@@ -93,7 +93,7 @@ func NotFound(err error) error {
 }
 
 func Conflict(err error) error {
-	return &AppError{
+	return &ServerError{
 		Code: http.StatusConflict,
 		Msg:  "Conflict",
 		Err:  err,
@@ -101,7 +101,7 @@ func Conflict(err error) error {
 }
 
 func GatewayTimeout(err error) error {
-	return &AppError{
+	return &ServerError{
 		Code: http.StatusGatewayTimeout,
 		Msg:  "gateway_timeout",
 		Err:  err,

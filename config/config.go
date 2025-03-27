@@ -13,16 +13,19 @@ var (
 )
 
 type Config struct {
-	Addr        string
-	LogLevel    string
-	Db          dbConfig
-	Env         string
-	apiURL      string
-	mail        mailConfig
-	frontendURL string
-	auth        authConfig
-	redisCfg    redisConfig
-	rateLimiter rateLimiterConfig
+	Addr         string
+	IdleTimeout  time.Duration
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	LogLevel     string
+	Db           dbConfig
+	Env          string
+	apiURL       string
+	mail         mailConfig
+	frontendURL  string
+	auth         authConfig
+	redisCfg     redisConfig
+	rateLimiter  rateLimiterConfig
 }
 
 type redisConfig struct {
@@ -85,6 +88,12 @@ func LoadConfig(filename string) (Config, error) {
 	cfgReader.AutomaticEnv()
 	cfgReader.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
+	// Explicit bindings for DB settings
+	cfgReader.BindEnv("Db.Addr", "DB_ADDR")
+	cfgReader.BindEnv("Db.MaxIdleTime", "DB_MAX_IDLE_TIME")
+	cfgReader.BindEnv("Db.MaxOpenConns", "DB_MAX_OPEN_CONNS")
+	cfgReader.BindEnv("Db.MaxIdleConns", "DB_MAX_IDLE_CONNS")
+
 	// Read the configuration file.
 	if err := cfgReader.ReadInConfig(); err != nil {
 		// It's okay if the config file doesn't exist, we'll use env vars
@@ -133,5 +142,9 @@ func bindEnvVariables(cfgReader *viper.Viper) error {
 func setDefaultValues(cfgReader *viper.Viper) {
 	cfgReader.SetDefault("Addr", ":8080")
 	cfgReader.SetDefault("LogLevel", "info")
+	cfgReader.SetDefault("IdleTimeout", time.Minute)
+	cfgReader.SetDefault("ReadTimeout", 10*time.Second)
+	cfgReader.SetDefault("WriteTimeout", 30*time.Second)
+	cfgReader.SetDefault("db.MaxIdleTime", "15m")
 	// Add more default values as needed
 }

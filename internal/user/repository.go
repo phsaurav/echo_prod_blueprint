@@ -3,58 +3,78 @@ package user
 import (
 	"context"
 	"database/sql"
-	"github.com/phsaurav/go_echo_base/config"
-	errs "github.com/phsaurav/go_echo_base/pkg/error"
+	"errors"
 
-	"github.com/phsaurav/go_echo_base/internal/user/models"
+	"github.com/phsaurav/go_echo_base/internal/database"
+	errs "github.com/phsaurav/go_echo_base/pkg/error"
 )
 
-type UserRepo interface {
-	Create(context.Context, *sql.Tx, *models.User) error
+// Repo is a concrete implementation of the user repository.
+// It must satisfy the Repository interface declared on the consumer side.
+type Repo struct {
+	DB *sql.DB
 }
 
-type repository struct {
-	db *sql.DB
+// NewRepo creates a new repository instance.
+func NewRepo(db database.Service) *Repo {
+	return &Repo{DB: db.DB()}
 }
 
-func NewRepository(db *sql.DB) UserRepo {
-	return &repository{db: db}
-}
+// Ensure Repo implements the consumer-side Repository interface.
+var _ Repository = (*Repo)(nil)
 
-func (repo *repository) Create(ctx context.Context, tx *sql.Tx, user *models.User) error {
+func (r *Repo) Create(ctx context.Context, u *User) error {
 	query := `
-		INSERT INTO users (username, models.Password, email, role_id) VALUES 
-    ($1, $2, $3, (SELECT id FROM roles WHERE name = $4))
-    RETURNING id, created_at
+		INSERT INTO users (username, email, created_at, is_active)
+		VALUES ($1, $2, NOW(), false)
+		RETURNING id
 	`
-
-	ctx, cancel := context.WithTimeout(ctx, config.QueryTimeoutDuration)
-	defer cancel()
-
-	//role := user.Role.Name
-	//if role == "" {
-	//	role = "user"
-	//}
-
-	err := tx.QueryRowContext(
-		ctx,
-		query,
-		user.Username,
-		user.Email,
-	).Scan(
-		&user.ID,
-		&user.CreatedAt,
-	)
+	err := r.DB.QueryRowContext(ctx, query, u.Username, u.Email).Scan(&u.ID)
 	if err != nil {
-		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
-			return errs.BasicErr("Email already exists")
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
-			return errs.BasicErr("Username already exists")
-		default:
-			return err
-		}
+		return errs.InternalServerError(err)
 	}
+	return nil
+}
 
+func (r *Repo) GetByID(ctx context.Context, id int64) (*User, error) {
+	query := `
+		SELECT id, username, email, created_at, is_active 
+		FROM users 
+		WHERE id = $1
+	`
+	u := new(User)
+	err := r.DB.QueryRowContext(ctx, query, id).Scan(
+		&u.ID, &u.Username, &u.Email, &u.CreatedAt, &u.IsActive)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.NotFound(err)
+		}
+		return nil, err
+	}
+	return u, nil
+}
+
+func (r *Repo) Follow(ctx context.Context, followedID, followerID int64) error {
+	query := `INSERT INTO followers (followed_id, follower_id) VALUES ($1, $2)`
+	_, err := r.DB.ExecContext(ctx, query, followedID, followerID)
+	return err
+}
+
+func (r *Repo) Unfollow(ctx context.Context, followerID, unfollowedID int64) error {
+	query := `DELETE FROM followers WHERE follower_id = $1 AND followed_id = $2`
+	_, err := r.DB.ExecContext(ctx, query, followerID, unfollowedID)
+	return err
+}
+
+func (r *Repo) Activate(ctx context.Context, token string) error {
+	query := `UPDATE users SET is_active = true WHERE activation_token = $1`
+	res, err := r.DB.ExecContext(ctx, query, token)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil || rows == 0 {
+		return errs.BaseErr("user not found or token invalid", err)
+	}
 	return nil
 }
