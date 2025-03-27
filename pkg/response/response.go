@@ -78,7 +78,7 @@ func (c BasicResponse) Send(ctx echo.Context) error {
 // ErrorBuilder creates and sends an error response.
 func ErrorBuilder(err error) FailedResponse {
 	if err != nil {
-		if apiErr, ok := err.(*errs.AppError); ok {
+		if apiErr, ok := err.(*errs.ServerError); ok {
 			return FailedResponse{
 				StatusCode: apiErr.Code,
 				Message:    apiErr.Msg,
