@@ -2,19 +2,21 @@ package server
 
 import (
 	"fmt"
+	"github.com/phsaurav/echo_prod_blueprint/internal/poll"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/phsaurav/go_echo_base/internal/post"
-	"github.com/phsaurav/go_echo_base/internal/user"
-	"github.com/phsaurav/go_echo_base/pkg/response"
+	"github.com/phsaurav/echo_prod_blueprint/internal/user"
+	"github.com/phsaurav/echo_prod_blueprint/pkg/response"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(JWTAuth(s.config.TokenConfig.Secret))
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://*", "http://*"},
@@ -29,6 +31,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	e.GET("/", s.HelloWorldHandler)
 	e.GET("/health", s.healthHandler)
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// Set up routes for each API version
 	for _, version := range apiVersions {
@@ -52,9 +56,9 @@ func (s *Server) routes(route *echo.Group, version string) {
 func (s *Server) registerV1Routes(route *echo.Group) {
 	// Routes
 	userGroup := route.Group("/user")
-	user.Register(userGroup, s.store.db)
-	postGroup := route.Group("/post")
-	post.Register(postGroup, s.store.db)
+	user.Register(userGroup, s.store.db, s.config)
+	pollGroup := route.Group("/poll")
+	poll.Register(pollGroup, s.store.db)
 }
 
 func (s *Server) HelloWorldHandler(c echo.Context) error {

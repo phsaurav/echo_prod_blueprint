@@ -11,7 +11,7 @@ services:
       ADDR: ":8080"
       API_URL: "localhost:8080"
       FRONTEND_URL: "http://localhost:5173"
-      DB_ADDR: "postgres://admin:adminpassword@psql_bp/socialnetwork?sslmode=disable"
+      DB_ADDR: "postgres://admin:adminpassword@psql_bp/jono-poll-db?sslmode=disable"
       DB_MAX_OPEN_CONNS: "30"
       DB_MAX_IDLE_CONNS: "30"
       DB_MAX_IDLE_TIME: "15m"
@@ -27,7 +27,7 @@ services:
     image: postgres:latest
     restart: unless-stopped
     environment:
-      POSTGRES_DB: socialnetwork
+      POSTGRES_DB: jono-poll-db
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: adminpassword
     ports:

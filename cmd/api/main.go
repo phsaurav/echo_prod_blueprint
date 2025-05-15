@@ -1,10 +1,13 @@
+// @title JonoPoll
+// @version 0.1.0
+// @description A simple poll and voting API with user authentication
 package main
 
 import (
 	"log"
 	"net/http"
 
-	"github.com/phsaurav/go_echo_base/internal/server"
+	"github.com/phsaurav/echo_prod_blueprint/internal/server"
 )
 
 func main() {
