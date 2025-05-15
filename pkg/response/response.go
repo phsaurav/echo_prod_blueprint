@@ -39,7 +39,7 @@ import (
 	"net/http"
 	"strconv"
 
-	errs "github.com/phsaurav/go_echo_base/pkg/error"
+	errs "github.com/phsaurav/echo_prod_blueprint/pkg/error"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/labstack/echo/v4"
@@ -51,6 +51,8 @@ const (
 	INTERNAL_SERVER_ERROR = "internal_server_error"
 	SUCCESS               = "success"
 )
+
+type Error = FailedResponse
 
 // Pagination holds pagination details.
 type Pagination struct {
