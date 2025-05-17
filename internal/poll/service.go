@@ -30,16 +30,6 @@ func NewService(repo Repository) *Service {
 	return &Service{Repo: repo}
 }
 
-// CreatePoll godoc
-// @Summary      Create a new poll
-// @Description  Create a new poll with options
-// @Tags         poll
-// @Accept       json
-// @Produce      json
-// @Param        poll  body  Poll  true  "Poll object"
-// @Success      200   {object}  Poll
-// @Failure      400   {object}  response.Error
-// @Router       /polls [post]
 func (s *Service) CreatePoll(c echo.Context) error {
 	// Parse request payload to get question/options
 	var req struct {
@@ -65,16 +55,6 @@ func (s *Service) CreatePoll(c echo.Context) error {
 	return response.SuccessBuilder(poll).Send(c)
 }
 
-// GetPoll godoc
-// @Summary      Get a poll by its ID
-// @Description  Retrieve a poll and its options by poll ID
-// @Tags         poll
-// @Produce      json
-// @Param        id   path      int  true  "Poll ID"
-// @Success      200  {object}  Poll
-// @Failure      400  {object}  response.Error
-// @Failure      404  {object}  response.Error
-// @Router       /polls/{id} [get]
 func (s *Service) GetPoll(c echo.Context) error {
 	idStr := c.Param("id")
 	pollID, err := strconv.ParseInt(idStr, 10, 64)
@@ -90,18 +70,6 @@ func (s *Service) GetPoll(c echo.Context) error {
 	return response.SuccessBuilder(p).Send(c)
 }
 
-// VotePoll godoc
-// @Summary      Vote for a poll option
-// @Description  Submit a vote for a specific option in a poll
-// @Tags         poll
-// @Accept       json
-// @Produce      json
-// @Param        id        path  int   true  "Poll ID"
-// @Param        json
-// @Success      204
-// @Failure      400  {object}  response.Error
-// @Failure      500  {object}  response.Error
-// @Router       /polls/{id}/vote [post]
 func (s *Service) VotePoll(c echo.Context) error {
 	idStr := c.Param("id")
 	pollID, err := strconv.ParseInt(idStr, 10, 64)
@@ -109,7 +77,6 @@ func (s *Service) VotePoll(c echo.Context) error {
 		return response.ErrorBuilder(errs.BadRequest(err)).Send(c)
 	}
 
-	// Accept JSON payload { "option_id": 123 }
 	var body struct {
 		OptionID int64 `json:"option_id"`
 	}
@@ -139,16 +106,6 @@ func (s *Service) VotePoll(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// GetResults godoc
-// @Summary      Get poll results
-// @Description  Retrieve poll options and the vote count for each option
-// @Tags         poll
-// @Produce      json
-// @Param        id   path      int  true  "Poll ID"
-// @Success      200  {array}   Option
-// @Failure      400  {object}  response.Error
-// @Failure      500  {object}  response.Error
-// @Router       /polls/{id}/results [get]
 func (s *Service) GetResults(c echo.Context) error {
 	idStr := c.Param("id")
 	pollID, err := strconv.ParseInt(idStr, 10, 64)

@@ -12,15 +12,15 @@ type PollService interface {
 	GetResults(c echo.Context) error
 }
 
-func Register(g *echo.Group, db database.Service) {
+func Register(g *echo.Group, db database.Service, authMiddleware echo.MiddlewareFunc) {
 	repo := NewRepo(db)
 	service := NewService(repo)
-	RegisterRoutes(g, service)
+	RegisterRoutes(g, service, authMiddleware)
 }
 
-func RegisterRoutes(g *echo.Group, service PollService) {
-	g.POST("", service.CreatePoll)
+func RegisterRoutes(g *echo.Group, service PollService, authMiddleware echo.MiddlewareFunc) {
+	g.POST("", service.CreatePoll, authMiddleware)
 	g.GET("/:id", service.GetPoll)
-	g.POST("/:id/vote", service.VotePoll)
+	g.POST("/:id/vote", service.VotePoll, authMiddleware)
 	g.GET("/:id/results", service.GetResults)
 }

@@ -1,11 +1,12 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // Config holds all application configuration
@@ -55,6 +56,10 @@ type DbConfig struct {
 	MaxOpenConns int
 	MaxIdleConns int
 	MaxIdleTime  string
+	Username     string
+	Password     string
+	Database     string
+	Host         string
 }
 
 type RateLimiterConfig struct {
@@ -65,10 +70,13 @@ type RateLimiterConfig struct {
 
 // LoadConfig loads configuration from environment variables
 func LoadConfig() (Config, error) {
+	// Load .env file if it exists
+	godotenv.Load()
+
 	var config Config
 
 	// Server config
-	config.Addr = envOrDefault("PORT", ":8080")
+	config.Addr = envOrDefault("PORT", "8080")
 	if !hasPrefix(config.Addr, ":") {
 		config.Addr = ":" + config.Addr
 	}
@@ -82,18 +90,26 @@ func LoadConfig() (Config, error) {
 	config.FrontendURL = envOrDefault("FRONTEND_URL", "http://localhost:5173")
 
 	// JWT Token config
-	config.TokenConfig.Secret = os.Getenv("JWT_SECRET")
+	config.TokenConfig.Secret = envOrDefault("JWT_SECRET", "")
 	if config.TokenConfig.Secret == "" {
-		return Config{}, errors.New("JWT_SECRET environment variable must be set")
+		return Config{}, fmt.Errorf("JWT_SECRET environment variable must be set")
 	}
 	config.TokenConfig.Exp = parseDuration(envOrDefault("TOKEN_EXP", "24h"))
 	config.TokenConfig.Iss = envOrDefault("TOKEN_ISS", "jonopoll")
 
 	// Database config
-	config.Db.Addr = os.Getenv("DB_ADDR")
-	if config.Db.Addr == "" {
-		return Config{}, errors.New("DB_ADDR environment variable must be set")
-	}
+	config.Db.Username = envOrDefault("DB_USERNAME", "admin")
+	config.Db.Password = envOrDefault("DB_PASSWORD", "adminpassword")
+	config.Db.Database = envOrDefault("DB_DATABASE", "jono-poll-db")
+	config.Db.Host = envOrDefault("DB_HOST", "localhost") // Add this to allow overriding in Docker
+
+	// Build the connection string programmatically
+	config.Db.Addr = fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
+		config.Db.Username,
+		config.Db.Password,
+		config.Db.Host,
+		config.Db.Database)
+
 	config.Db.MaxOpenConns = parseInt(envOrDefault("DB_MAX_OPEN_CONNS", "30"))
 	config.Db.MaxIdleConns = parseInt(envOrDefault("DB_MAX_IDLE_CONNS", "30"))
 	config.Db.MaxIdleTime = envOrDefault("DB_MAX_IDLE_TIME", "15m")

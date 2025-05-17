@@ -21,13 +21,17 @@ func JWTAuth(secret string) echo.MiddlewareFunc {
 				return response.ErrorBuilder(errs.Unauthorized(errors.New("missing authorization header"))).Send(c)
 			}
 
-			// Check if the Authorization header has the right format
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || parts[0] != "Bearer" {
-				return response.ErrorBuilder(errs.Unauthorized(errors.New("invalid authorization format"))).Send(c)
-			}
+			var tokenString string
 
-			tokenString := parts[1]
+			// Check if the Authorization header has the format "Bearer <token>"
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				// Extract token from "Bearer <token>" format
+				tokenString = parts[1]
+			} else {
+				// Use the entire header as the token
+				tokenString = authHeader
+			}
 
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

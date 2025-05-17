@@ -1,4 +1,179 @@
+definitions:
+  response.FailedResponse:
+    properties:
+      code:
+        description: HTTP status code.
+        example: 500
+        type: integer
+      error:
+        description: error message.
+        example: '{$err}'
+        type: string
+      message:
+        description: Message corresponding to the status code.
+        example: internal_server_error
+        type: string
+    type: object
+  user.LoginRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      password:
+        example: securePassword123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  user.RegisterRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      password:
+        example: securePassword123
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  user.TokenResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  user.User:
+    properties:
+      created_at:
+        example: "2023-01-01T12:00:00Z"
+        type: string
+      email:
+        example: john@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+      is_active:
+        example: true
+        type: boolean
+      username:
+        example: johndoe
+        type: string
+    type: object
 info:
   contact: {}
-paths: {}
+  description: A simple poll and voting API with user authentication
+  title: JonoPoll
+  version: 0.1.0
+paths:
+  /api/v1/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user details by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/user.User'
+        "400":
+          description: Bad request - invalid ID format
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "404":
+          description: Not found - user doesn't exist
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+  /api/v1/user/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and return a JWT token
+      parameters:
+      - description: User login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully authenticated with JWT token
+          schema:
+            $ref: '#/definitions/user.TokenResponse'
+        "400":
+          description: Bad request - invalid input
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "401":
+          description: Unauthorized - invalid credentials
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+      summary: User login
+      tags:
+      - users
+  /api/v1/user/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with username, email, and password
+      parameters:
+      - description: User registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully registered user
+          schema:
+            $ref: '#/definitions/user.User'
+        "400":
+          description: Bad request - invalid input
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+      summary: Register a new user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Enter your JWT token directly (or optionally with 'Bearer ' prefix)
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
