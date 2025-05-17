@@ -48,8 +48,8 @@ func NewService(repo Repository, jwtSecret string) *Service {
 // @Produce json
 // @Param request body RegisterRequest true "User registration details"
 // @Success 200 {object} User "Successfully registered user"
-// @Failure 400 {object} response.ErrorResponse "Bad request - invalid input"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Failure 400 {object} response.FailedResponse "Bad request - invalid input"
+// @Failure 500 {object} response.FailedResponse "Internal server error"
 // @Router /api/v1/user/register [post]
 func (s *Service) RegisterUser(c echo.Context) error {
 	var req struct {
@@ -95,9 +95,9 @@ func (s *Service) RegisterUser(c echo.Context) error {
 // @Produce json
 // @Param request body LoginRequest true "User login credentials"
 // @Success 200 {object} TokenResponse "Successfully authenticated with JWT token"
-// @Failure 400 {object} response.ErrorResponse "Bad request - invalid input"
-// @Failure 401 {object} response.ErrorResponse "Unauthorized - invalid credentials"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
+// @Failure 400 {object} response.FailedResponse "Bad request - invalid input"
+// @Failure 401 {object} response.FailedResponse "Unauthorized - invalid credentials"
+// @Failure 500 {object} response.FailedResponse "Internal server error"
 // @Router /api/v1/user/login [post]
 func (s *Service) LoginUser(c echo.Context) error {
 	var req struct {
@@ -134,10 +134,10 @@ func (s *Service) LoginUser(c echo.Context) error {
 // @Produce json
 // @Param id path int true "User ID"
 // @Success 200 {object} User "User details"
-// @Failure 400 {object} response.ErrorResponse "Bad request - invalid ID format"
-// @Failure 404 {object} response.ErrorResponse "Not found - user doesn't exist"
-// @Failure 500 {object} response.ErrorResponse "Internal server error"
-// @Security ApiKeyAuth
+// @Failure 400 {object} response.FailedResponse "Bad request - invalid ID format"
+// @Failure 404 {object} response.FailedResponse "Not found - user doesn't exist"
+// @Failure 500 {object} response.FailedResponse "Internal server error"
+// @Security    BearerAuth
 // @Router /api/v1/user/{id} [get]
 func (s *Service) GetUser(c echo.Context) error {
 	idStr := c.Param("id")

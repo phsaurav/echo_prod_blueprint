@@ -2,11 +2,13 @@ package server
 
 import (
 	"fmt"
-	"github.com/phsaurav/echo_prod_blueprint/internal/poll"
 	"net/http"
+
+	"github.com/phsaurav/echo_prod_blueprint/internal/poll"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	_ "github.com/phsaurav/echo_prod_blueprint/docs"
 	"github.com/phsaurav/echo_prod_blueprint/internal/user"
 	"github.com/phsaurav/echo_prod_blueprint/pkg/response"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -16,7 +18,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(JWTAuth(s.config.TokenConfig.Secret))
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://*", "http://*"},
@@ -54,11 +55,12 @@ func (s *Server) routes(route *echo.Group, version string) {
 
 // Methods to register routes for specific versions
 func (s *Server) registerV1Routes(route *echo.Group) {
+	jwtAuthMiddleware := JWTAuth(s.config.TokenConfig.Secret)
 	// Routes
 	userGroup := route.Group("/user")
-	user.Register(userGroup, s.store.db, s.config)
+	user.Register(userGroup, s.store.db, s.config, jwtAuthMiddleware)
 	pollGroup := route.Group("/poll")
-	poll.Register(pollGroup, s.store.db)
+	poll.Register(pollGroup, s.store.db, jwtAuthMiddleware)
 }
 
 func (s *Server) HelloWorldHandler(c echo.Context) error {

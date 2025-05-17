@@ -12,15 +12,15 @@ type UserService interface {
 	GetUser(c echo.Context) error
 }
 
-func Register(g *echo.Group, db database.Service, cfg config.Config) {
+func Register(g *echo.Group, db database.Service, cfg config.Config, authMiddleware echo.MiddlewareFunc) {
 	repo := NewRepo(db)
 	service := NewService(repo, cfg.TokenConfig.Secret)
-	RegisterRoutes(g, service)
+	RegisterRoutes(g, service, authMiddleware)
 }
 
 // RegisterRoutes registers the user routes under the provided echo.Group.
-func RegisterRoutes(g *echo.Group, service UserService) {
+func RegisterRoutes(g *echo.Group, service UserService, authMiddleware echo.MiddlewareFunc) {
 	g.POST("/register", service.RegisterUser)
 	g.POST("/login", service.LoginUser)
-	g.GET("/:id", service.GetUser)
+	g.GET("/:id", service.GetUser, authMiddleware)
 }
