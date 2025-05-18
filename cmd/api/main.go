@@ -8,7 +8,7 @@ import (
 	"github.com/phsaurav/echo_prod_blueprint/internal/server"
 )
 
-// @title			JonoPoll
+// @title			JonoMot
 // @version		0.1.0
 // @description	A simple poll and voting API with user authentication
 // @securityDefinitions.apikey	BearerAuth

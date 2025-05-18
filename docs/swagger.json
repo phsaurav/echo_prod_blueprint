@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "A simple poll and voting API with user authentication",
-        "title": "JonoPoll",
+        "title": "JonoMot",
         "contact": {},
         "version": "0.1.0"
     },
@@ -398,10 +398,7 @@
                         "type": "string"
                     },
                     "example": [
-                        "[\"Go\"",
-                        "\"Python\"",
-                        "\"JavaScript\"",
-                        "\"Java\"]"
+                        "["
                     ]
                 },
                 "question": {

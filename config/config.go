@@ -95,7 +95,7 @@ func LoadConfig() (Config, error) {
 		return Config{}, fmt.Errorf("JWT_SECRET environment variable must be set")
 	}
 	config.TokenConfig.Exp = parseDuration(envOrDefault("TOKEN_EXP", "24h"))
-	config.TokenConfig.Iss = envOrDefault("TOKEN_ISS", "jonopoll")
+	config.TokenConfig.Iss = envOrDefault("TOKEN_ISS", "JonoMot")
 
 	// Database config
 	config.Db.Username = envOrDefault("DB_USERNAME", "admin")
