@@ -1,4 +1,89 @@
 definitions:
+  poll.CreatePollRequest:
+    properties:
+      options:
+        example:
+        - '["Go"'
+        - '"Python"'
+        - '"JavaScript"'
+        - '"Java"]'
+        items:
+          type: string
+        type: array
+      question:
+        example: What is your favorite programming language?
+        type: string
+    type: object
+  poll.CreatePollResponse:
+    properties:
+      poll:
+        $ref: '#/definitions/poll.Poll'
+    type: object
+  poll.Option:
+    properties:
+      id:
+        type: integer
+      poll_id:
+        type: integer
+      text:
+        type: string
+      votes:
+        type: integer
+    type: object
+  poll.Poll:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/poll.Option'
+        type: array
+      question:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  poll.PollResultsResponse:
+    properties:
+      created_at:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/poll.Option'
+        type: array
+      poll_id:
+        example: 1
+        type: integer
+      question:
+        example: What is your favorite programming language?
+        type: string
+      total_votes:
+        example: 42
+        type: integer
+    type: object
+  poll.VotePollRequest:
+    properties:
+      option_id:
+        example: 1
+        type: integer
+    type: object
+  poll.VotePollResponse:
+    properties:
+      message:
+        example: Vote recorded successfully
+        type: string
+      option_id:
+        example: 2
+        type: integer
+      poll_id:
+        example: 1
+        type: integer
+      timestamp:
+        example: "2025-05-18T10:30:45Z"
+        type: string
+    type: object
   response.FailedResponse:
     properties:
       code:
@@ -71,6 +156,153 @@ info:
   title: JonoPoll
   version: 0.1.0
 paths:
+  /api/v1/poll:
+    post:
+      consumes:
+      - application/json
+      description: Create a new poll with a question and multiple options
+      parameters:
+      - description: Poll creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/poll.CreatePollRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created poll
+          schema:
+            $ref: '#/definitions/poll.CreatePollResponse'
+        "400":
+          description: Bad request - invalid input
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "401":
+          description: Unauthorized - authentication required
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new poll
+      tags:
+      - polls
+  /api/v1/poll/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get poll details including available options
+      parameters:
+      - description: Poll ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Poll details with options
+          schema:
+            $ref: '#/definitions/poll.Poll'
+        "400":
+          description: Bad request - invalid ID format
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "404":
+          description: Not found - poll doesn't exist
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+      summary: Get poll information
+      tags:
+      - polls
+  /api/v1/poll/{id}/results:
+    get:
+      consumes:
+      - application/json
+      description: Get the current vote counts for each option in a poll
+      parameters:
+      - description: Poll ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Poll results with options and vote counts
+          schema:
+            $ref: '#/definitions/poll.PollResultsResponse'
+        "400":
+          description: Bad request - invalid poll ID format
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "404":
+          description: Not found - poll doesn't exist
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+      summary: Get poll results
+      tags:
+      - polls
+  /api/v1/poll/{id}/vote:
+    post:
+      consumes:
+      - application/json
+      description: Submit a vote for a specific option in a poll
+      parameters:
+      - description: Poll ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vote details with option_id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/poll.VotePollRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vote successfully recorded with details
+          schema:
+            $ref: '#/definitions/poll.VotePollResponse'
+        "400":
+          description: Bad request - invalid input or poll ID
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "401":
+          description: Unauthorized - authentication required
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "403":
+          description: Forbidden - user has already voted
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.FailedResponse'
+      security:
+      - BearerAuth: []
+      summary: Vote on a poll
+      tags:
+      - polls
   /api/v1/user/{id}:
     get:
       consumes:
