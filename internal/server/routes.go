@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/phsaurav/echo_prod_blueprint/internal/poll"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/phsaurav/go_echo_base/internal/post"
-	"github.com/phsaurav/go_echo_base/internal/user"
-	"github.com/phsaurav/go_echo_base/pkg/response"
+	_ "github.com/phsaurav/echo_prod_blueprint/docs"
+	"github.com/phsaurav/echo_prod_blueprint/internal/user"
+	"github.com/phsaurav/echo_prod_blueprint/pkg/response"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -30,6 +33,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	e.GET("/", s.HelloWorldHandler)
 	e.GET("/health", s.healthHandler)
 
+	e.GET("/docs/*", echoSwagger.WrapHandler)
+
 	// Set up routes for each API version
 	for _, version := range apiVersions {
 		route := e.Group(fmt.Sprintf("/api/%s", version))
@@ -50,11 +55,12 @@ func (s *Server) routes(route *echo.Group, version string) {
 
 // Methods to register routes for specific versions
 func (s *Server) registerV1Routes(route *echo.Group) {
+	jwtAuthMiddleware := JWTAuth(s.config.TokenConfig.Secret)
 	// Routes
 	userGroup := route.Group("/user")
-	user.Register(userGroup, s.store.db)
-	postGroup := route.Group("/post")
-	post.Register(postGroup, s.store.db)
+	user.Register(userGroup, s.store.db, s.config, jwtAuthMiddleware)
+	pollGroup := route.Group("/poll")
+	poll.Register(pollGroup, s.store.db, jwtAuthMiddleware)
 }
 
 func (s *Server) HelloWorldHandler(c echo.Context) error {

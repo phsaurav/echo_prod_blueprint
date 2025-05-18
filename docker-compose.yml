@@ -1,49 +1,42 @@
+version: "3.8"
+
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: prod
-    restart: unless-stopped
-    ports:
-      - 8080:8080
-    environment:
-      ADDR: ":8080"
-      API_URL: "localhost:8080"
-      FRONTEND_URL: "http://localhost:5173"
-      DB_ADDR: "postgres://admin:adminpassword@psql_bp/socialnetwork?sslmode=disable"
-      DB_MAX_OPEN_CONNS: "30"
-      DB_MAX_IDLE_CONNS: "30"
-      DB_MAX_IDLE_TIME: "15m"
-      RATELIMITER_REQUESTSPERTIMEFRAME: "20"
-      RATELIMITER_TIMEFRAME: "5s"
-      RATELIMITER_ENABLED: "true"
-    depends_on:
-      psql_bp:
-        condition: service_healthy
-    networks:
-      - blueprint
-  psql_bp:
-    image: postgres:latest
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: socialnetwork
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: adminpassword
-    ports:
-      - "5432:5432"
-    volumes:
-      - psql_volume_base:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${ECHO_BASE_DB_USERNAME} -d ${ECHO_BASE_DB_DATABASE}'"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-    networks:
-      - blueprint
+    postgres:
+        image: postgres:15-alpine
+        env_file:
+            - .env
+        environment:
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_DATABASE}
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-admin}"]
+            interval: 2s
+            timeout: 5s
+            retries: 5
+            start_period: 5s
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - 8080:8080
+        env_file:
+            - .env
+        environment:
+            DB_HOST: postgres
+        depends_on:
+            postgres:
+                condition: service_healthy
+        restart: unless-stopped
+        volumes:
+            - ./migrations:/app/migrations
 
 volumes:
-  psql_volume_base:
-networks:
-  blueprint:
+    postgres_data:

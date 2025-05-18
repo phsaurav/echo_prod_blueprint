@@ -4,9 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/phsaurav/go_echo_base/internal/server"
+	_ "github.com/phsaurav/echo_prod_blueprint/docs"
+	"github.com/phsaurav/echo_prod_blueprint/internal/server"
 )
 
+// @title			JonoMot
+// @version		0.1.0
+// @description	A simple poll and voting API with user authentication
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
+// @description				Enter your JWT token directly (or optionally with 'Bearer ' prefix)
+// @Security					BearerAuth
 func main() {
 
 	app, db, err := server.NewServer()

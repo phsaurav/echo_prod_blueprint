@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
-	"github.com/phsaurav/go_echo_base/pkg/logger"
+	"github.com/phsaurav/echo_prod_blueprint/pkg/logger"
 )
 
 var logging = logger.NewLogger()
