@@ -33,7 +33,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	e.GET("/", s.HelloWorldHandler)
 	e.GET("/health", s.healthHandler)
 
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	e.GET("/docs/*", echoSwagger.WrapHandler)
 
 	// Set up routes for each API version
 	for _, version := range apiVersions {

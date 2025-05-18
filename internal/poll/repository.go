@@ -25,33 +25,33 @@ var _ Repository = (*Repo)(nil)
 func (r *Repo) Create(ctx context.Context, p *Poll) error {
 	tx, err := r.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return errs.InternalServerError(err)
+			return errs.InternalServerError(err)
 	}
 	defer tx.Rollback()
 
 	// Insert poll
 	pollQuery := `
-		INSERT INTO polls (question, created_at)
-		VALUES ($1, NOW())
-		RETURNING id, created_at
+			INSERT INTO polls (question, user_id, created_at)
+			VALUES ($1, $2, NOW())
+			RETURNING id, created_at
 	`
-	err = tx.QueryRowContext(ctx, pollQuery, p.Question).Scan(&p.ID, &p.CreatedAt)
+	err = tx.QueryRowContext(ctx, pollQuery, p.Question, p.UserID).Scan(&p.ID, &p.CreatedAt)
 	if err != nil {
-		return errs.InternalServerError(err)
+			return errs.InternalServerError(err)
 	}
 
 	// Insert options
 	optionQuery := `INSERT INTO poll_options (poll_id, text) VALUES ($1, $2) RETURNING id`
 	for i := range p.Options {
-		err := tx.QueryRowContext(ctx, optionQuery, p.ID, p.Options[i].Text).Scan(&p.Options[i].ID)
-		if err != nil {
-			return errs.InternalServerError(err)
-		}
-		p.Options[i].PollID = p.ID
+			err := tx.QueryRowContext(ctx, optionQuery, p.ID, p.Options[i].Text).Scan(&p.Options[i].ID)
+			if err != nil {
+					return errs.InternalServerError(err)
+			}
+			p.Options[i].PollID = p.ID
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errs.InternalServerError(err)
+			return errs.InternalServerError(err)
 	}
 	return nil
 }
