@@ -138,3 +138,9 @@ seed:
 .PHONY: gen-docs
 gen-docs:
 	@swag init -g api/main.go -d ./cmd,./internal,./pkg --parseDependency --parseInternal
+
+.PHONY: gen-feature
+gen-feature:
+	@echo "Generating new feature: $(filter-out $@,$(MAKECMDGOALS))"
+	@mkdir -p internal/$(filter-out $@,$(MAKECMDGOALS))
+	@go run cmd/tools/feature/main.go $(filter-out $@,$(MAKECMDGOALS))
