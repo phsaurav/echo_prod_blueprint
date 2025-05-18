@@ -11,9 +11,9 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/labstack/echo/v4"
 
-	"github.com/phsaurav/go_echo_base/config"
-	"github.com/phsaurav/go_echo_base/internal/database"
-	"github.com/phsaurav/go_echo_base/pkg/logger"
+	"github.com/phsaurav/echo_prod_blueprint/config"
+	"github.com/phsaurav/echo_prod_blueprint/internal/database"
+	"github.com/phsaurav/echo_prod_blueprint/pkg/logger"
 )
 
 type Server struct {
@@ -25,7 +25,7 @@ type Server struct {
 
 func NewServer() (*http.Server, database.Service, error) {
 	// Load the application configuration from the specified directory.
-	cfg, err := config.LoadConfig("config")
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		// If an error occurs while loading the configuration, panic with the error.
 		panic(err)

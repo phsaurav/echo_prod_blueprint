@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/phsaurav/go_echo_base/internal/database"
+	"github.com/phsaurav/echo_prod_blueprint/internal/database"
 )
 
 type Store struct {

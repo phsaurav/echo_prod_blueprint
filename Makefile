@@ -1,5 +1,3 @@
-include .envrc
-
 AIR := $(HOME)/go/bin/air
 
 .PHONY: run debug test migration migrate-up migrate-down migrate-down-to migration-tree seed gen-docs
@@ -21,24 +19,68 @@ debug:
 
 .PHONY: migrate-create
 migration:
-	@goose -s create $(filter-out $@,$(MAKECMDGOALS)) sql
+	@echo "Creating migration: $(filter-out $@,$(MAKECMDGOALS))"
+	@if [ -f .env ]; then \
+			export $$(grep -v '^#' .env | xargs); \
+			export GOOSE_DRIVER=postgres; \
+			export GOOSE_DBSTRING="user=$$DB_USERNAME password=$$DB_PASSWORD dbname=$$DB_DATABASE host=$$DB_HOST sslmode=disable"; \
+			goose -dir="$$GOOSE_MIGRATION_DIR" -s create $(filter-out $@,$(MAKECMDGOALS)) sql; \
+	else \
+			echo "Error: .env file not found"; \
+			exit 1; \
+	fi
 
 .PHONY: migrate-up
 migrate-up:
-	@goose up
+	@echo "Running migrations up..."
+	@if [ -f .env ]; then \
+			export $$(grep -v '^#' .env | xargs); \
+			export GOOSE_DRIVER=postgres; \
+			export GOOSE_DBSTRING="user=$$DB_USERNAME password=$$DB_PASSWORD dbname=$$DB_DATABASE host=$$DB_HOST sslmode=disable"; \
+			goose -dir="$$GOOSE_MIGRATION_DIR" up; \
+	else \
+			echo "Error: .env file not found"; \
+			exit 1; \
+	fi
 
 .PHONY: migrate-down
 migrate-down:
-	@goose down
+	@echo "Rolling back the last migration..."
+	@if [ -f .env ]; then \
+			export $$(grep -v '^#' .env | xargs); \
+			export GOOSE_DRIVER=postgres; \
+			export GOOSE_DBSTRING="user=$$DB_USERNAME password=$$DB_PASSWORD dbname=$$DB_DATABASE host=$$DB_HOST sslmode=disable"; \
+			goose -dir="$$GOOSE_MIGRATION_DIR" down; \
+	else \
+			echo "Error: .env file not found"; \
+			exit 1; \
+	fi
 
 .PHONY: migrate-down-to
 migrate-down-to:
-	@goose down-to $(filter-out $@,$(MAKECMDGOALS))
+	@echo "Rolling back to version $(filter-out $@,$(MAKECMDGOALS))..."
+	@if [ -f .env ]; then \
+			export $$(grep -v '^#' .env | xargs); \
+			export GOOSE_DRIVER=postgres; \
+			export GOOSE_DBSTRING="user=$$DB_USERNAME password=$$DB_PASSWORD dbname=$$DB_DATABASE host=$$DB_HOST sslmode=disable"; \
+			goose -dir="$$GOOSE_MIGRATION_DIR" down-to $(filter-out $@,$(MAKECMDGOALS)); \
+	else \
+			echo "Error: .env file not found"; \
+			exit 1; \
+	fi
 
-.PHONY: migration-tree
-migration-tree:
-	@goose status$(filter-out $@,$(MAKECMDGOALS))
-
+.PHONY: migration-status
+migration-status:
+	@echo "Migration status..."
+	@if [ -f .env ]; then \
+			export $$(grep -v '^#' .env | xargs); \
+			export GOOSE_DRIVER=postgres; \
+			export GOOSE_DBSTRING="user=$$DB_USERNAME password=$$DB_PASSWORD dbname=$$DB_DATABASE host=$$DB_HOST sslmode=disable"; \
+			goose -dir="$$GOOSE_MIGRATION_DIR" status; \
+	else \
+			echo "Error: .env file not found"; \
+			exit 1; \
+	fi
 
 # Create DB container
 docker-run:
@@ -95,4 +137,10 @@ seed:
 
 .PHONY: gen-docs
 gen-docs:
-	@swag init -g ./api/main.go -d cmd,internal && swag fmt
+	@swag init -g api/main.go -d ./cmd,./internal,./pkg --parseDependency --parseInternal
+
+.PHONY: gen-feature
+gen-feature:
+	@echo "Generating new feature: $(filter-out $@,$(MAKECMDGOALS))"
+	@mkdir -p internal/$(filter-out $@,$(MAKECMDGOALS))
+	@go run cmd/tools/feature/main.go $(filter-out $@,$(MAKECMDGOALS))

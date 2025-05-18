@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/phsaurav/go_echo_base/internal/database"
-	errs "github.com/phsaurav/go_echo_base/pkg/error"
+	"github.com/phsaurav/echo_prod_blueprint/internal/database"
+	errs "github.com/phsaurav/echo_prod_blueprint/pkg/error"
 )
 
 // Repo is a concrete implementation of the user repository.
@@ -23,19 +23,21 @@ func NewRepo(db database.Service) *Repo {
 // Ensure Repo implements the consumer-side Repository interface.
 var _ Repository = (*Repo)(nil)
 
+// Create adds a new user to the database
 func (r *Repo) Create(ctx context.Context, u *User) error {
 	query := `
-		INSERT INTO users (username, email, created_at, is_active)
-		VALUES ($1, $2, NOW(), false)
-		RETURNING id
+		INSERT INTO users (username, email, password, created_at, is_active)
+		VALUES ($1, $2, $3, NOW(), false)
+		RETURNING id, created_at
 	`
-	err := r.DB.QueryRowContext(ctx, query, u.Username, u.Email).Scan(&u.ID)
+	err := r.DB.QueryRowContext(ctx, query, u.Username, u.Email, u.Password).Scan(&u.ID, &u.CreatedAt)
 	if err != nil {
 		return errs.InternalServerError(err)
 	}
 	return nil
 }
 
+// GetByID retrieves a user by their ID
 func (r *Repo) GetByID(ctx context.Context, id int64) (*User, error) {
 	query := `
 		SELECT id, username, email, created_at, is_active 
@@ -49,32 +51,47 @@ func (r *Repo) GetByID(ctx context.Context, id int64) (*User, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.NotFound(err)
 		}
-		return nil, err
+		return nil, errs.InternalServerError(err)
 	}
 	return u, nil
 }
 
-func (r *Repo) Follow(ctx context.Context, followedID, followerID int64) error {
-	query := `INSERT INTO followers (followed_id, follower_id) VALUES ($1, $2)`
-	_, err := r.DB.ExecContext(ctx, query, followedID, followerID)
-	return err
-}
-
-func (r *Repo) Unfollow(ctx context.Context, followerID, unfollowedID int64) error {
-	query := `DELETE FROM followers WHERE follower_id = $1 AND followed_id = $2`
-	_, err := r.DB.ExecContext(ctx, query, followerID, unfollowedID)
-	return err
-}
-
-func (r *Repo) Activate(ctx context.Context, token string) error {
-	query := `UPDATE users SET is_active = true WHERE activation_token = $1`
-	res, err := r.DB.ExecContext(ctx, query, token)
+// GetByEmail retrieves a user by their email address
+func (r *Repo) GetByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+		SELECT id, username, email, password, created_at, is_active 
+		FROM users 
+		WHERE email = $1
+	`
+	u := new(User)
+	err := r.DB.QueryRowContext(ctx, query, email).Scan(
+		&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt, &u.IsActive)
 	if err != nil {
-		return err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.NotFound(err)
+		}
+		return nil, errs.InternalServerError(err)
 	}
-	rows, err := res.RowsAffected()
-	if err != nil || rows == 0 {
-		return errs.BaseErr("user not found or token invalid", err)
+	return u, nil
+}
+
+// UpdatePassword updates a user's password
+func (r *Repo) UpdatePassword(ctx context.Context, id int64, password string) error {
+	query := `UPDATE users SET password = $1 WHERE id = $2`
+	_, err := r.DB.ExecContext(ctx, query, password, id)
+	if err != nil {
+		return errs.InternalServerError(err)
 	}
 	return nil
 }
+
+// ActivateUser sets a user's is_active flag to true
+func (r *Repo) ActivateUser(ctx context.Context, id int64) error {
+	query := `UPDATE users SET is_active = true WHERE id = $2`
+	_, err := r.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return errs.InternalServerError(err)
+	}
+	return nil
+}
+

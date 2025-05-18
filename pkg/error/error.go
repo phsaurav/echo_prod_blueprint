@@ -25,6 +25,8 @@ package errs
 import (
 	"errors"
 	"net/http"
+
+	"github.com/phsaurav/echo_prod_blueprint/pkg/logger"
 )
 
 type ServerError struct {
@@ -35,6 +37,11 @@ type ServerError struct {
 
 func (h ServerError) Error() string {
 	return h.Err.Error()
+}
+
+func (h ServerError) Log() {
+	log := logger.NewLogger()
+	log.Errorf("Error: %s | Code: %d | Message: %s", h.Error(), h.Code, h.Msg)
 }
 
 func BaseErr(msg string, err ...error) ServerError {
@@ -49,61 +56,91 @@ func BaseErr(msg string, err ...error) ServerError {
 		appErr.Err = errors.New(msg)
 	}
 
+	appErr.Log()
+
 	return appErr
 }
 
 func BadRequest(err error) error {
-	return &ServerError{
-		Code: http.StatusBadRequest,
-		Msg:  "bad_request",
-		Err:  err,
-	}
-}
-
-func InternalServerError(err error) error {
-	return &ServerError{
+	serverErr := &ServerError{
 		Code: http.StatusInternalServerError,
 		Msg:  "internal_server_error",
 		Err:  err,
 	}
+
+	serverErr.Log()
+
+	return serverErr
+}
+
+func InternalServerError(err error) error {
+	serverErr := &ServerError{
+		Code: http.StatusInternalServerError,
+		Msg:  "internal_server_error",
+		Err:  err,
+	}
+
+	serverErr.Log()
+
+	return serverErr
 }
 
 func Unauthorized(err error) error {
-	return &ServerError{
+	serverErr := &ServerError{
 		Code: http.StatusUnauthorized,
 		Msg:  "unauthorized",
 		Err:  err,
 	}
+
+	serverErr.Log()
+
+	return serverErr
 }
 
 func Forbidden(err error) error {
-	return &ServerError{
+	serverErr := &ServerError{
 		Code: http.StatusForbidden,
 		Msg:  "forbidden",
 		Err:  err,
 	}
+
+	serverErr.Log()
+
+	return serverErr
 }
 
 func NotFound(err error) error {
-	return &ServerError{
+	serverErr := &ServerError{
 		Code: http.StatusNotFound,
 		Msg:  "not_found",
 		Err:  err,
 	}
+
+	serverErr.Log()
+
+	return serverErr
 }
 
 func Conflict(err error) error {
-	return &ServerError{
+	serverErr := &ServerError{
 		Code: http.StatusConflict,
 		Msg:  "Conflict",
 		Err:  err,
 	}
+
+	serverErr.Log()
+
+	return serverErr
 }
 
 func GatewayTimeout(err error) error {
-	return &ServerError{
+	serverErr := &ServerError{
 		Code: http.StatusGatewayTimeout,
 		Msg:  "gateway_timeout",
 		Err:  err,
 	}
+
+	serverErr.Log()
+
+	return serverErr
 }

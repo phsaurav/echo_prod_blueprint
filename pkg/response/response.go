@@ -39,7 +39,8 @@ import (
 	"net/http"
 	"strconv"
 
-	errs "github.com/phsaurav/go_echo_base/pkg/error"
+	errs "github.com/phsaurav/echo_prod_blueprint/pkg/error"
+	"github.com/phsaurav/echo_prod_blueprint/pkg/logger"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/labstack/echo/v4"
@@ -51,6 +52,8 @@ const (
 	INTERNAL_SERVER_ERROR = "internal_server_error"
 	SUCCESS               = "success"
 )
+
+type Error = FailedResponse
 
 // Pagination holds pagination details.
 type Pagination struct {
@@ -115,11 +118,18 @@ func BasicBuilder(result BasicResponse) BasicResponse {
 
 // Send sends the BasicResponse as a JSON response using the provided Echo context.
 func (c BasicResponse) Send(ctx echo.Context) error {
+	log := logger.NewLogger()
+
 	if c.Error != "" {
+		log.Errorf("Sending basic response with error: StatusCode=%d, Message=%s, Error=%s",
+			c.StatusCode, c.Message, c.Error)
 		trace.SpanFromContext(ctx.Request().Context()).SetStatus(codes.Error, c.Error)
 	} else {
+		log.Infof("Sending basic response: StatusCode=%d, Message=%s",
+			c.StatusCode, c.Message)
 		trace.SpanFromContext(ctx.Request().Context()).SetStatus(codes.Ok, http.StatusText(c.StatusCode))
 	}
+
 	return ctx.JSON(c.StatusCode, c)
 }
 
@@ -149,6 +159,10 @@ func ErrorBuilder(err error) FailedResponse {
 
 // Send sends the FailedResponse as a JSON response using the provided Echo context.
 func (x FailedResponse) Send(c echo.Context) error {
+	log := logger.NewLogger()
+	log.Errorf("Sending error response: StatusCode=%d, Message=%s, Error=%s",
+		x.StatusCode, x.Message, x.Error)
+
 	span := trace.SpanFromContext(c.Request().Context())
 	span.SetStatus(codes.Error, x.Error)
 	span.SetAttributes(
@@ -189,6 +203,9 @@ type Meta struct {
 
 // SuccessBuilder constructs a CustomResponse with a Success status and the provided response data.
 func SuccessBuilder(response interface{}, meta ...interface{}) SuccessResponse {
+	log := logger.NewLogger()
+	log.Infof("Building success response with data: %+v", response)
+
 	result := SuccessResponse{
 		Success: Success{
 			ResponseFormat: ResponseFormat{
@@ -208,12 +225,19 @@ func SuccessBuilder(response interface{}, meta ...interface{}) SuccessResponse {
 
 // PaginatedSuccessBuilder constructs a SuccessResponse with pagination metadata.
 func PaginatedSuccessBuilder(data interface{}, pagination Pagination) SuccessResponse {
+	log := logger.NewLogger()
+	log.Infof("Building paginated response: Page=%d, PageSize=%d, TotalPages=%d, TotalRecords=%d",
+		pagination.Page, pagination.PageSize, pagination.TotalPages, pagination.TotalRecords)
+
 	pagination = applyDefaults(pagination)
 	return SuccessBuilder(data, pagination)
 }
 
 // Send sends the CustomResponse as a JSON response using the provided Echo context.
 func (c SuccessResponse) Send(ctx echo.Context) error {
+	log := logger.NewLogger()
+	log.Infof("Sending success response: StatusCode=%d, Message=%s",
+		c.StatusCode, c.Message)
 	trace.SpanFromContext(ctx.Request().Context()).SetStatus(codes.Ok, http.StatusText(c.StatusCode))
 	return ctx.JSON(c.StatusCode, c)
 }
