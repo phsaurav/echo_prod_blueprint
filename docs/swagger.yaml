@@ -3,10 +3,7 @@ definitions:
     properties:
       options:
         example:
-        - '["Go"'
-        - '"Python"'
-        - '"JavaScript"'
-        - '"Java"]'
+        - '['
         items:
           type: string
         type: array
@@ -153,7 +150,7 @@ definitions:
 info:
   contact: {}
   description: A simple poll and voting API with user authentication
-  title: JonoPoll
+  title: JonoMot
   version: 0.1.0
 paths:
   /api/v1/poll:

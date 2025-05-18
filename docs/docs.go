@@ -406,10 +406,7 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "example": [
-                        "[\"Go\"",
-                        "\"Python\"",
-                        "\"JavaScript\"",
-                        "\"Java\"]"
+                        "["
                     ]
                 },
                 "question": {
@@ -631,7 +628,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "JonoPoll",
+	Title:            "JonoMot",
 	Description:      "A simple poll and voting API with user authentication",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
