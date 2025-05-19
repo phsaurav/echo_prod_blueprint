@@ -143,4 +143,4 @@ gen-docs:
 gen-feature:
 	@echo "Generating new feature: $(filter-out $@,$(MAKECMDGOALS))"
 	@mkdir -p internal/$(filter-out $@,$(MAKECMDGOALS))
-	@go run cmd/tools/feature/main.go $(filter-out $@,$(MAKECMDGOALS))
+	@go run cmd/tools/feature/create.go $(filter-out $@,$(MAKECMDGOALS))
