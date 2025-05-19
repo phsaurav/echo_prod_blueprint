@@ -31,7 +31,7 @@ type Vote struct {
 // CreatePollRequest represents the request payload for creating a new poll
 type CreatePollRequest struct {
 	Question string   `json:"question" example:"What is your favorite programming language?"`
-	Options  []string `json:"options" example:"["Go","Python","JavaScript","Java"]"`
+	Options  []string `json:"options" example:"[\"Go\",\"Python\",\"JavaScript\",\"Java\"]"`
 }
 
 // CreatePollResponse represents the response for a successfully created poll
