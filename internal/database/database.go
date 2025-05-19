@@ -13,6 +13,7 @@ import (
 )
 
 var logging = logger.NewLogger()
+var sqlOpen = sql.Open
 
 // Service represents a service that interacts with a database.
 type Service interface {
@@ -39,7 +40,7 @@ func New(addr string, maxOpenConns, maxIdleConns int, maxIdleTime string) (Servi
 	if dbInstance != nil {
 		return dbInstance, nil
 	}
-	db, err := sql.Open("pgx", addr)
+	db, err := sqlOpen("pgx", addr)
 	if err != nil {
 		logging.Info(err)
 		return nil, err
@@ -70,17 +71,18 @@ func New(addr string, maxOpenConns, maxIdleConns int, maxIdleTime string) (Servi
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
 func (s *service) Health() map[string]string {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	_, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	stats := make(map[string]string)
 
 	// Ping the database
-	err := s.db.PingContext(ctx)
+	err := s.db.Ping()
 	if err != nil {
 		stats["status"] = "down"
 		stats["error"] = fmt.Sprintf("db down: %v", err)
-		logging.Fatalf("db down: %v", err) // Log the error and terminate the program
+		// Don't use Fatal, just log an error
+		logging.Error("Database is down")
 		return stats
 	}
 
