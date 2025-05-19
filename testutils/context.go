@@ -22,3 +22,13 @@ func CreateAuthContext(method, path, body string, userID int64) (echo.Context, *
 	c.Set("user_id", userID)
 	return c, rec
 }
+
+// Helper function to set up Echo context for testing
+func SetupEchoContext(method, url string, body string) (echo.Context, *httptest.ResponseRecorder) {
+	e := echo.New()
+	req := httptest.NewRequest(method, url, strings.NewReader(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	return c, rec
+}
