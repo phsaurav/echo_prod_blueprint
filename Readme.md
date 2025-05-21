@@ -1,6 +1,6 @@
 # Project JonoMot
 
-One Paragraph of project description goes here
+![Golang_Arch](https://github.com/user-attachments/assets/20fe6ce8-9a5a-4bb7-8d6a-18a26da4b950)
 
 ## Getting Started
 
