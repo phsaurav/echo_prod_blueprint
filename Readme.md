@@ -8,7 +8,7 @@ After reading "100 Go Mistakes and How to Avoid Them," I recognized the need for
 
 ## SOLID Principles in JonoMot
 
-JonoMot adheres to SOLID principles while respecting Go's philosophy:
+JonoMot adheres to SOLID principles while respecting Golang's philosophy:
 
 1. **Single Responsibility Principle**: Each package has a clear, focused responsibility:
 
