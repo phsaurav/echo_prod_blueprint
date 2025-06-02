@@ -11,73 +11,84 @@ After reading "100 Go Mistakes and How to Avoid Them," I recognized the need for
 JonoMot adheres to SOLID principles while respecting Go's philosophy:
 
 1. **Single Responsibility Principle**: Each package has a clear, focused responsibility:
-   - `internal/user`: Manages user-related functionality
-   - `internal/poll`: Handles poll functionality
-   - `pkg/logger`: Centralized logging
-   - `pkg/response`: Standardized API responses
+
+    - `internal/user`: Manages user-related functionality
+    - `internal/poll`: Handles poll functionality
+    - `pkg/logger`: Centralized logging
+    - `pkg/response`: Standardized API responses
 
 2. **Open/Closed Principle**: The codebase is designed for extension without modification:
-   - Service interfaces like `UserService` and `PollService` can have multiple implementations
-   - New features can be added via the tool in `cmd/tools/feature`
+
+    - Service interfaces like `UserService` and `PollService` can have multiple implementations
+    - New features can be added via the tool in `cmd/tools/feature`
 
 3. **Liskov Substitution Principle**: Interfaces are properly designed for substitution:
-   - Repository interfaces (`user.Repository`, `poll.Repository`) can be swapped with test mocks
-   - `database.Service` abstracts database operations
+
+    - Repository interfaces (`user.Repository`, `poll.Repository`) can be swapped with test mocks
+    - `database.Service` abstracts database operations
 
 4. **Interface Segregation Principle**: Interfaces are client-specific and focused:
-   - `PollService` defines only methods required for poll operations
-   - `UserService` defines only methods needed for user functionality
+
+    - `PollService` defines only methods required for poll operations
+    - `UserService` defines only methods needed for user functionality
 
 5. **Dependency Inversion Principle**: Dependencies flow toward abstractions:
-   - Service constructors like `NewService` accept Repository interfaces
-   - `RegisterRoutes` accepts service interfaces
+    - Service constructors like `NewService` accept Repository interfaces
+    - `RegisterRoutes` accepts service interfaces
 
 ## Go Best Practices from "100 Go Mistakes and How to Avoid Them"
 
 JonoMot implements numerous best practices:
 
 1. **Code Organization**:
-   - Proper package structure separating `cmd`, `internal`, and `pkg` directories
-   - Clean separation between application layers (model, repository, service, routes)
+
+    - Proper package structure separating `cmd`, `internal`, and `pkg` directories
+    - Clean separation between application layers (model, repository, service, routes)
 
 2. **Error Handling**:
-   - Custom error handling with `pkg/error`
-   - Centralized error responses via `response.ErrorBuilder`
+
+    - Custom error handling with `pkg/error`
+    - Centralized error responses via `response.ErrorBuilder`
 
 3. **Interfaces**:
-   - Interfaces declared by consumers, not implementers
-   - Focused interfaces with minimal method sets
+
+    - Interfaces declared by consumers, not implementers
+    - Focused interfaces with minimal method sets
 
 4. **Database Handling**:
-   - Connection pooling with configured MaxOpenConns/MaxIdleConns
-   - Proper context usage in database operations
-   - Parameterized SQL queries to prevent SQL injection
+
+    - Connection pooling with configured MaxOpenConns/MaxIdleConns
+    - Proper context usage in database operations
+    - Parameterized SQL queries to prevent SQL injection
 
 5. **Testing**:
-   - Comprehensive unit tests with mocks
-   - SQL mocking using sqlmock
-   - Integration tests for database operations
+
+    - Comprehensive unit tests with mocks
+    - SQL mocking using sqlmock
+    - Integration tests for database operations
 
 6. **Concurrency**:
-   - Graceful shutdown implementation
-   - Proper context usage for cancellation
+
+    - Graceful shutdown implementation
+    - Proper context usage for cancellation
 
 7. **Configuration**:
-   - Environment-based configuration in `config`
-   - Sensible defaults with overrides
+
+    - Environment-based configuration in `config`
+    - Sensible defaults with overrides
 
 8. **API Design**:
-   - RESTful API with consistent response formats
-   - Structured logging via `pkg/logger`
-   - Swagger documentation
+    - RESTful API with consistent response formats
+    - Structured logging via `pkg/logger`
+    - Swagger documentation
 
 ## Setting Up Development Environment
 
 ### Prerequisites
 
-- Go 1.19+
-- PostgreSQL or Docker
-- Make
+-   Go 1.19+
+-   PostgreSQL or Docker
+-   Make
 
 ### Environment Setup
 
@@ -112,4 +123,5 @@ make clean                    # Clean build artifacts
 ```
 
 ### API Documentation
+
 Swagger documentation is available at `docs` when the server is running.
